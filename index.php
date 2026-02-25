@@ -20,26 +20,6 @@ $result = mysqli_query($link, $query);
     <meta charset="UTF-8">
     <title>Список статей</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* Додаткові стилі для нових кнопок навігації */
-        .nav-buttons {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .btn-nav {
-            display: inline-block;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        .btn-stats { background: #9b59b6; color: white; }
-        .btn-search { background: #34495e; color: white; }
-        .btn-stats:hover, .btn-search:hover { opacity: 0.8; }
-    </style>
 </head>
 
 <body>
@@ -103,4 +83,5 @@ $result = mysqli_query($link, $query);
 </div>
 
 </body>
+
 </html>
