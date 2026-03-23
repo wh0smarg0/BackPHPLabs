@@ -1,104 +1,119 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+:root {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-main: #f1f5f9;
+    --text-dim: #94a3b8;
+    --accent: #38bdf8;
+    --danger: #ef4444;
+    --success: #10b981;
+    --border: #334155;
+}
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #0b0e11;
-    color: #ffffff;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
     margin: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    padding: 40px 20px;
 }
 
 .container {
-    background-color: #15191e;
     width: 100%;
-    max-width: 420px;
-    padding: 2.5rem;
-    border-radius: 32px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    text-align: center;
-    border: 1px solid #232931;
-}
-
-/* Заголовки */
-h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.5px; }
-.subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 2rem; }
-
-/* Кнопки міст на головній */
-ul { list-style: none; padding: 0; margin: 0; }
-li { margin-bottom: 12px; }
-
-.city-link {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #1e252b;
-    color: #f8fafc;
-    text-decoration: none;
-    padding: 16px;
+    max-width: 900px;
+    background: var(--card-bg);
+    padding: 30px;
     border-radius: 16px;
-    font-weight: 600;
-    transition: 0.2s all ease;
-    border: 1px solid transparent;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
 }
 
-.city-link:hover {
-    background-color: #252d35;
-    border-color: #3b82f6;
-    transform: scale(1.02);
+h1 { font-size: 1.8rem; margin-bottom: 5px; color: var(--accent); }
+.subtitle { color: var(--text-dim); margin-bottom: 25px; font-size: 0.9rem; }
+
+/* Таблиця */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
 }
 
-/* Погода */
-.weather-icon {
-    width: 120px;
-    filter: drop-shadow(0 10px 15px rgba(59, 130, 246, 0.3));
+th {
+    text-align: left;
+    padding: 10px 15px;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.temp-display {
-    font-size: 5rem;
-    font-weight: 700;
-    margin: 0.5rem 0;
-    background: linear-gradient(to bottom, #ffffff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+td {
+    padding: 20px 15px;
+    background-color: #283545;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
 
-.desc {
-    font-size: 1.1rem;
-    color: #94a3b8;
-    text-transform: capitalize;
-    margin-bottom: 2rem;
+td:first-child {
+    border-left: 1px solid var(--border);
+    border-radius: 8px 0 0 8px;
+}
+td:last-child {
+    border-right: 1px solid var(--border);
+    border-radius: 0 8px 8px 0;
 }
 
-/* Сітка статистики */
-.stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: #1e252b;
-    padding: 1.2rem;
-    border-radius: 20px;
-    text-align: center;
-}
-
-.stat-label { color: #64748b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
-.stat-value { display: block; font-size: 1.2rem; font-weight: 600; color: #f1f5f9; margin-top: 5px; }
-
-/* Кнопка повернення */
-.btn-back {
-    color: #64748b;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    padding: 10px;
+.tag {
     display: inline-block;
-    transition: 0.2s;
+    padding: 6px 12px;
+    background-color: var(--tag-bg);
+    color: var(--accent);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    font-weight: 500;
 }
 
-.btn-back:hover { color: #ffffff; }
+th:nth-child(3),
+td:nth-child(3) {
+    min-width: 150px;
+}
+
+/* Кнопки та посилання */
+.btn {
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: inline-block;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+.btn-outline:hover { background: var(--border); }
+
+.btn-delete { color: var(--danger); background: none; font-weight: 500; }
+.btn-delete:hover { text-decoration: underline; }
+
+/* Форми */
+.form-group { margin-bottom: 15px; }
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-color);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #fff;
+    box-sizing: border-box;
+    margin-top: 5px;
+}
+input:focus { border-color: var(--accent); outline: none; }
+
+.actions { display: flex; gap: 10px; align-items: center; }
