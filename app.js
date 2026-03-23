@@ -1,125 +1,100 @@
 const express = require('express');
-const hbs = require('hbs');
+const mongoose = require('mongoose');
 const path = require('path');
-const request = require('request');
+const methodOverride = require('method-override');
+const Article = require('./models/article');
 
 const app = express();
 
-// Налаштування шляхів для Express
-const viewsPath = path.join(__dirname, '/views');
-const partialsPath = path.join(__dirname, '/views/partials');
-const publicDirectoryPath = path.join(__dirname, '/public');
+// Підключення до локальної БД
+mongoose.connect('mongodb://127.0.0.1:27017/lab5_db')
+    .then(() => console.log('З’єднано з MongoDB'))
+    .catch(err => console.log('Помилка з’єднання:', err));
 
-// Налаштування шаблонізатора hbs та статичних файлів
 app.set('view engine', 'hbs');
-app.set('views', viewsPath);
-hbs.registerPartials(partialsPath);
-app.use(express.static(publicDirectoryPath));
+app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// API ключ з OpenWeatherMap
-const apiKey = '0343c5889546441edcf96def52da8c6c';
+// --- РОУТИ ---
 
-/**
- * Головна сторінка
- */
-app.get('/', (req, res) => {
-    res.render('index', {
-        title: 'WEATHER APP',
-        name: 'Сахно Маргарита',
-        group: 'ІО-35'
-    });
-});
-
-/**
- * Маршрут для отримання погоди
- * Підтримує:
- * 1. /weather/Kyiv (через параметри шляху)
- * 2. /weather?lat=50.45&lon=30.52 (через query-параметри для геолокації)
- */
-app.get(['/weather', '/weather/:city'], (req, res) => {
-    const city = req.params.city;
-    const { lat, lon } = req.query;
-
-    let url = '';
-
-    // 1. Визначення типу запиту
-    if (lat && lon) {
-        url = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ua`;
-    } else if (city) {
-        url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=ua`;
-    } else {
-        // Значення за замовчуванням
-        url = `http://api.openweathermap.org/data/2.5/weather?q=Obukhiv&appid=${apiKey}&units=metric&lang=ua`;
+// 1. READ: Список усіх статей
+app.get('/', async (req, res) => {
+    try {
+        const articles = await Article.find();
+        res.render('index', { title: 'Архів статей', articles });
+    } catch (err) {
+        res.status(500).send('Помилка завантаження бази даних');
     }
-
-    request({ url, json: true }, (error, response) => {
-        // Виводимо відповідь у термінал для дебагу
-        if (response && response.body) {
-            console.log('Статус API:', response.body.cod);
-            console.log('Повідомлення API:', response.body.message);
-        }
-
-        // 2. Обробка критичних помилок (немає зв'язку)
-        if (error) {
-            return res.status(500).render('error', {
-                title: 'Помилка мережі',
-                message: 'Не вдалося з’єднатися з сервером погоди.'
-            });
-        }
-
-        // 3. Розділення помилок за кодами OpenWeatherMap
-        if (response.body.cod !== 200) {
-            let errorTitle = 'Помилка';
-            let errorMessage = 'Щось пішло не так.';
-
-            switch (response.body.cod) {
-                case 401:
-                    errorTitle = 'Помилка авторизації';
-                    errorMessage = 'Ваш API-ключ недійсний або ще не активований (зачекайте до 2-х годин).';
-                    break;
-                case 404:
-                    errorTitle = 'Місто не знайдено';
-                    errorMessage = city
-                        ? `Місто "${city}" не знайдено в базі даних.`
-                        : 'Не вдалося знайти населений пункт за вашими координатами.';
-                    break;
-                case 429:
-                    errorTitle = 'Ліміт вичерпано';
-                    errorMessage = 'Ви зробили забагато запитів за короткий час.';
-                    break;
-                default:
-                    errorMessage = response.body.message || 'Помилка отримання даних.';
-            }
-
-            return res.status(response.body.cod).render('error', {
-                title: errorTitle,
-                message: errorMessage
-            });
-        }
-
-        // 4. Успішний рендер
-        res.render('weather', {
-            city: response.body.name,
-            temp: Math.round(response.body.main.temp),
-            description: response.body.weather[0].description,
-            humidity: response.body.main.humidity,
-            pressure: response.body.main.pressure,
-            icon: response.body.weather[0].icon
-        });
-    });
 });
 
-/**
- * Універсальний обробник 404 помилки (Middleware)
- */
-app.use((req, res) => {
-    res.status(404).render('error', {
-        title: '404',
-        message: 'Сторінку не знайдено.'
-    });
+// 2. CREATE: Форма додавання
+app.get('/add', (req, res) => {
+    res.render('add', { title: 'Додати нову статтю' });
 });
 
-// Запуск сервера на порту 3000
-app.listen(3000, () => {
-    console.log('Сервер працює на порту 3000. Відкрийте http://localhost:3000');
+// 2. CREATE: Збереження в базу
+app.post('/articles', async (req, res) => {
+    try {
+        const newArticle = new Article(req.body);
+        await newArticle.save();
+        res.redirect('/');
+    } catch (err) {
+        res.status(400).send('Помилка при збереженні даних');
+    }
 });
+
+// 3. JSON: Виведення даних
+app.get('/api/articles', async (req, res) => {
+    try {
+        const articles = await Article.find();
+        res.json(articles);
+    } catch (err) {
+        res.status(500).json({ error: 'Помилка отримання JSON' });
+    }
+});
+
+// 4. UPDATE: Форма редагування
+app.get('/edit/:id', async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.id);
+        if (!article) return res.status(404).send('Статтю не знайдено');
+        res.render('edit', { title: 'Редагування', article });
+    } catch (err) {
+        res.status(500).send('Некоректний ID');
+    }
+});
+
+// 4. UPDATE: Оновлення в базі
+app.put('/articles/:id', async (req, res) => {
+    try {
+        await Article.findByIdAndUpdate(req.params.id, req.body);
+        res.redirect('/');
+    } catch (err) {
+        res.status(500).send('Помилка при оновленні');
+    }
+});
+
+// 5. DELETE: Видалення
+app.delete('/articles/:id', async (req, res) => {
+    try {
+        await Article.findByIdAndDelete(req.params.id);
+        res.redirect('/');
+    } catch (err) {
+        res.status(500).send('Помилка при видаленні');
+    }
+});
+
+// READ: Перегляд однієї конкретної статті
+app.get('/articles/:id', async (req, res) => {
+    try {
+        const article = await Article.findById(req.params.id);
+        if (!article) return res.status(404).send('Статтю не знайдено');
+
+        res.render('details', { title: article.title, article });
+    } catch (err) {
+        res.status(500).send('Помилка при завантаженні статті');
+    }
+});
+
+app.listen(3000, () => console.log('Сервер: http://localhost:3000'));
