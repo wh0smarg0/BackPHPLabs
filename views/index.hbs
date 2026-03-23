@@ -1,89 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
     <link rel="stylesheet" href="/css/style.css">
-    <style>
-        /* Додатковий стиль для акцентної кнопки геолокації */
-        .location-btn {
-            background: linear-gradient(135deg, #3498db, #2ecc71) !important;
-            border: none !important;
-        }
-        .location-btn:hover {
-            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
-        }
-    </style>
 </head>
 <body>
 <div class="container">
     <header>
-        <h1>{{title}}</h1>
-        <div class="subtitle">Сахно Маргарита | ІО-35 | ЛР №4</div>
+        <h1>Архів статей MongoDB</h1>
+        <div class="subtitle">Лабораторна робота №5 | Варіант №9 | Сахно Маргарита</div>
     </header>
 
-    <p style="color: #9ca3af; margin-bottom: 1.5rem;">Оберіть місто або визначте автоматично:</p>
+    <div class="actions" style="margin-bottom: 30px; display: flex; gap: 15px;">
+        <a href="/add" class="btn btn-primary" style="text-decoration: none;">+ Додати нову статтю</a>
+        <a href="/api/articles" target="_blank" class="btn btn-outline" style="text-decoration: none;">Відкрити JSON API</a>
+    </div>
 
-    <ul>
-        <li>
-            <a href="#" onclick="getLocation()" class="city-link location-btn">
-                📍 Визначити моє місто
-            </a>
-        </li>
+    {{#if articles.length}}
+        <table>
+            <thead>
+            <tr>
+                <th>Автор</th>
+                <th>Заголовок (клік для перегляду)</th>
+                <th>Тема</th>
+                <th style="text-align: right;">Дії</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#each articles}}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text-main);">{{this.authorName}}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-dim);">{{this.login}}</div>
+                    </td>
+                    <td>
+                        <a href="/articles/{{this._id}}" style="color: var(--accent); text-decoration: none; font-weight: 500; border-bottom: 1px dashed var(--accent);">
+                            {{this.title}}
+                        </a>
+                    </td>
+                    <td>
+                        <span style="background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                            {{this.topic}}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; gap: 15px; justify-content: flex-end; align-items: center;">
+                            <a href="/edit/{{this._id}}" title="Редагувати" style="text-decoration: none; color: var(--text-dim); font-size: 1.2rem;">✎</a>
 
-        <hr style="border: 0; border-top: 1px solid #2d3238; margin: 15px 0;">
-
-        <li><a href="/weather/Kyiv" class="city-link">Київ</a></li>
-        <li><a href="/weather/Kharkiv" class="city-link">Харків</a></li>
-        <li><a href="/weather/Odesa" class="city-link">Одеса</a></li>
-        <li><a href="/weather/Dnipro" class="city-link">Дніпро</a></li>
-        <li><a href="/weather/Lviv" class="city-link">Львів</a></li>
-        <li><a href="/weather/Zaporizhzhia" class="city-link">Запоріжжя</a></li>
-        <li><a href="/weather/Vinnytsia" class="city-link">Вінниця</a></li>
-        <li><a href="/weather/Chernihiv" class="city-link">Чернігів</a></li>
-        <li><a href="/weather/Poltava" class="city-link">Полтава</a></li>
-        <li><a href="/weather/Obukhiv" class="city-link">Обухів</a></li>
-    </ul>
+                            <form action="/articles/{{this._id}}?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Ви впевнені, що хочете видалити цю статтю?')">
+                                <button type="submit" class="btn-delete" style="border: none; background: none; cursor: pointer; font-size: 0.9rem;">Видалити</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {{/each}}
+            </tbody>
+        </table>
+    {{else}}
+        <div style="text-align: center; padding: 50px; color: var(--text-dim); border: 2px dashed var(--border); border-radius: 12px;">
+            <p>У базі даних поки немає жодної статті.</p>
+            <a href="/add" style="color: var(--accent);">Створіть першу статтю зараз</a>
+        </div>
+    {{/if}}
 </div>
-
-<script>
-    function getLocation() {
-        // Перевіряємо, чи підтримує браузер геолокацію
-        if (navigator.geolocation) {
-            // Текст на кнопці можна змінити на час очікування
-            const btn = document.querySelector('.location-btn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "⌛ Визначаємо...";
-
-            navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-
-                        // Перенаправляємо на маршрут /weather з query-параметрами
-                        window.location.href = `/weather?lat=${lat}&lon=${lon}`;
-                    },
-                    (error) => {
-                        btn.innerHTML = originalText;
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                                alert("Ви відхилили запит на геолокацію.");
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                alert("Інформація про місцезнаходження недоступна.");
-                                break;
-                            case error.TIMEOUT:
-                                alert("Час очікування запиту вичерпано.");
-                                break;
-                            default:
-                                alert("Сталася невідома помилка.");
-                                break;
-                        }
-                    }
-            );
-        } else {
-            alert("Ваш браузер не підтримує геолокацію.");
-        }
-    }
-</script>
 </body>
 </html>
