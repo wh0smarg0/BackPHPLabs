@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Додатковий стиль для акцентної кнопки геолокації */
+        .location-btn {
+            background: linear-gradient(135deg, #3498db, #2ecc71) !important;
+            border: none !important;
+        }
+        .location-btn:hover {
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>{{title}}</h1>
+        <div class="subtitle">Сахно Маргарита | ІО-35 | ЛР №4</div>
+    </header>
+
+    <p style="color: #9ca3af; margin-bottom: 1.5rem;">Оберіть місто або визначте автоматично:</p>
+
+    <ul>
+        <li>
+            <a href="#" onclick="getLocation()" class="city-link location-btn">
+                📍 Визначити моє місто
+            </a>
+        </li>
+
+        <hr style="border: 0; border-top: 1px solid #2d3238; margin: 15px 0;">
+
+        <li><a href="/weather/Kyiv" class="city-link">Київ</a></li>
+        <li><a href="/weather/Kharkiv" class="city-link">Харків</a></li>
+        <li><a href="/weather/Odesa" class="city-link">Одеса</a></li>
+        <li><a href="/weather/Dnipro" class="city-link">Дніпро</a></li>
+        <li><a href="/weather/Lviv" class="city-link">Львів</a></li>
+        <li><a href="/weather/Zaporizhzhia" class="city-link">Запоріжжя</a></li>
+        <li><a href="/weather/Vinnytsia" class="city-link">Вінниця</a></li>
+        <li><a href="/weather/Chernihiv" class="city-link">Чернігів</a></li>
+        <li><a href="/weather/Poltava" class="city-link">Полтава</a></li>
+        <li><a href="/weather/Obukhiv" class="city-link">Обухів</a></li>
+    </ul>
+</div>
+
+<script>
+    function getLocation() {
+        // Перевіряємо, чи підтримує браузер геолокацію
+        if (navigator.geolocation) {
+            // Текст на кнопці можна змінити на час очікування
+            const btn = document.querySelector('.location-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "⌛ Визначаємо...";
+
+            navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+
+                        // Перенаправляємо на маршрут /weather з query-параметрами
+                        window.location.href = `/weather?lat=${lat}&lon=${lon}`;
+                    },
+                    (error) => {
+                        btn.innerHTML = originalText;
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                alert("Ви відхилили запит на геолокацію.");
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                alert("Інформація про місцезнаходження недоступна.");
+                                break;
+                            case error.TIMEOUT:
+                                alert("Час очікування запиту вичерпано.");
+                                break;
+                            default:
+                                alert("Сталася невідома помилка.");
+                                break;
+                        }
+                    }
+            );
+        } else {
+            alert("Ваш браузер не підтримує геолокацію.");
+        }
+    }
+</script>
+</body>
+</html>
