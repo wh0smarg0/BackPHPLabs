@@ -2,99 +2,93 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const methodOverride = require('method-override');
-const Article = require('./models/article');
+const { ApolloServer } = require('@apollo/server');
+const { expressMiddleware } = require('@apollo/server/express4');
+const { json } = require('body-parser');
+const cors = require('cors');
+const Article = require('./models/Article');
 
 const app = express();
 
-// Підключення до локальної БД
+// Підключення до бази даних (Варіант 9)
 mongoose.connect('mongodb://127.0.0.1:27017/lab5_db')
-    .then(() => console.log('З’єднано з MongoDB'))
-    .catch(err => console.log('Помилка з’єднання:', err));
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch(err => console.log('❌ DB Error:', err));
 
 app.set('view engine', 'hbs');
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 
-// --- РОУТИ ---
+// --- Визначення схеми GraphQL (SDL) ---
+const typeDefs = `#graphql
+  type Article {
+    id: ID!
+    authorName: String!
+    authorAddress: String
+    login: String!
+    topic: String
+    title: String!
+    content: String
+    illustration: String
+  }
 
-// 1. READ: Список усіх статей
-app.get('/', async (req, res) => {
-    try {
+  type Query {
+    getAllArticles: [Article] # Отримати всі статті
+    getArticle(id: ID!): Article # Пошук за ID
+  }
+
+  type Mutation {
+    # Створення статті
+    createArticle(authorName: String!, login: String!, password: String!, title: String!, content: String, topic: String): Article
+    
+    # Редагування статті (замінює форму редагування)
+    updateArticle(id: ID!, title: String, content: String, topic: String): Article
+    
+    # Видалення статті (замінює кнопку видалення)
+    deleteArticle(id: ID!): Boolean
+  }
+`;
+
+// --- Резолвери (Логіка CRUD) ---
+const resolvers = {
+    Query: {
+        getAllArticles: async () => await Article.find(),
+        getArticle: async (_, { id }) => await Article.findById(id)
+    },
+    Mutation: {
+        createArticle: async (_, args) => {
+            return await Article.create(args);
+        },
+        updateArticle: async (_, { id, ...updates }) => {
+            return await Article.findByIdAndUpdate(id, updates, { new: true });
+        },
+        deleteArticle: async (_, { id }) => {
+            const result = await Article.findByIdAndDelete(id);
+            return !!result;
+        }
+    }
+};
+
+const server = new ApolloServer({ typeDefs, resolvers });
+
+async function startServer() {
+    await server.start();
+
+    // Ендпоінт для запитів GraphQL
+    app.use('/graphql', cors(), json(), expressMiddleware(server));
+
+    // Головна сторінка
+    app.get('/', async (req, res) => {
         const articles = await Article.find();
-        res.render('index', { title: 'Архів статей', articles });
-    } catch (err) {
-        res.status(500).send('Помилка завантаження бази даних');
-    }
-});
+        res.render('index', { articles, title: 'Архів статей: GraphQL Edition' });
+    });
 
-// 2. CREATE: Форма додавання
-app.get('/add', (req, res) => {
-    res.render('add', { title: 'Додати нову статтю' });
-});
+    app.listen(3000, () => {
+        console.log('🚀 Сервер: http://localhost:3000');
+        console.log('📊 Тестування GraphQL: http://localhost:3000/graphql');
+    });
+}
 
-// 2. CREATE: Збереження в базу
-app.post('/articles', async (req, res) => {
-    try {
-        const newArticle = new Article(req.body);
-        await newArticle.save();
-        res.redirect('/');
-    } catch (err) {
-        res.status(400).send('Помилка при збереженні даних');
-    }
-});
-
-// 3. JSON: Виведення даних
-app.get('/api/articles', async (req, res) => {
-    try {
-        const articles = await Article.find();
-        res.json(articles);
-    } catch (err) {
-        res.status(500).json({ error: 'Помилка отримання JSON' });
-    }
-});
-
-// 4. UPDATE: Форма редагування
-app.get('/edit/:id', async (req, res) => {
-    try {
-        const article = await Article.findById(req.params.id);
-        if (!article) return res.status(404).send('Статтю не знайдено');
-        res.render('edit', { title: 'Редагування', article });
-    } catch (err) {
-        res.status(500).send('Некоректний ID');
-    }
-});
-
-// 4. UPDATE: Оновлення в базі
-app.put('/articles/:id', async (req, res) => {
-    try {
-        await Article.findByIdAndUpdate(req.params.id, req.body);
-        res.redirect('/');
-    } catch (err) {
-        res.status(500).send('Помилка при оновленні');
-    }
-});
-
-// 5. DELETE: Видалення
-app.delete('/articles/:id', async (req, res) => {
-    try {
-        await Article.findByIdAndDelete(req.params.id);
-        res.redirect('/');
-    } catch (err) {
-        res.status(500).send('Помилка при видаленні');
-    }
-});
-
-// READ: Перегляд однієї конкретної статті
-app.get('/articles/:id', async (req, res) => {
-    try {
-        const article = await Article.findById(req.params.id);
-        if (!article) return res.status(404).send('Статтю не знайдено');
-
-        res.render('details', { title: article.title, article });
-    } catch (err) {
-        res.status(500).send('Помилка при завантаженні статті');
-    }
-});
-
-app.listen(3000, () => console.log('Сервер: http://localhost:3000'));
+startServer();
