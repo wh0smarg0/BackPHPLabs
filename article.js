@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
 const articleSchema = new mongoose.Schema({
-    authorName: String,
+    authorName: { type: String, required: true },
     authorAddress: String,
-    login: String,
+    login: { type: String, required: true },
+    password: { type: String, required: true },
     topic: String,
     title: { type: String, required: true },
     content: String,
-    illustration: String,
-    createdAt: { type: Date, default: Date.now }
-});
+    illustration: String
+}, { timestamps: true });
 
-module.exports = mongoose.model('article', articleSchema);
+module.exports = mongoose.model('Article', articleSchema);
