@@ -9,13 +9,14 @@
 <body>
 <div class="container">
     <header>
-        <h1>Архів статей MongoDB</h1>
-        <div class="subtitle">Лабораторна робота №5 | Варіант №9 | Сахно Маргарита</div>
+        <h1>Архів статей MongoDB & GraphQL</h1>
+        <div class="subtitle">Лабораторна робота №6 | Варіант №9 | Сахно Маргарита</div>
     </header>
 
-    <div class="actions" style="margin-bottom: 30px; display: flex; gap: 15px;">
+    <div class="actions" style="margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
         <a href="/add" class="btn btn-primary" style="text-decoration: none;">+ Додати нову статтю</a>
         <a href="/api/articles" target="_blank" class="btn btn-outline" style="text-decoration: none;">Відкрити JSON API</a>
+        <a href="/graphql" target="_blank" class="btn btn-outline" style="text-decoration: none; border-color: #e10098; color: #e10098;">Відкрити GraphQL Sandbox</a>
     </div>
 
     {{#if articles.length}}
@@ -41,7 +42,7 @@
                         </a>
                     </td>
                     <td>
-                        <span style="background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                        <span style="white-space: nowrap; background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
                             {{this.topic}}
                         </span>
                     </td>
@@ -50,7 +51,7 @@
                             <a href="/edit/{{this._id}}" title="Редагувати" style="text-decoration: none; color: var(--text-dim); font-size: 1.2rem;">✎</a>
 
                             <form action="/articles/{{this._id}}?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Ви впевнені, що хочете видалити цю статтю?')">
-                                <button type="submit" class="btn-delete" style="border: none; background: none; cursor: pointer; font-size: 0.9rem;">Видалити</button>
+                                <button type="submit" class="btn-delete" style="border: none; background: none; cursor: pointer; font-size: 0.9rem; color: var(--danger);">Видалити</button>
                             </form>
                         </div>
                     </td>
